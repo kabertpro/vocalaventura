@@ -1,6 +1,7 @@
 /**
  * VOCALAVENTURA - Core Engine de Gestión Pedagógica Orofacial
- * Desarrollado con Vanilla JS enfocado a Mobile-First e Inclusión Infantil
+ * Desarrollado con Vanilla JS enfocado a Mobile-First, Aleatoriedad e Interacción Sonora
+ * Autor Requerido: KABERT STUDIO - LMKE
  */
 
 // 1. BANCO DE DATOS DE EJERCICIOS (Mapeo Estricto de Recursos Disponibles)
@@ -14,7 +15,7 @@ const EXERCISE_DATABASE = {
         { id: 'b_o', name: 'Boquita de sorpresa O', file: 'bocao.jpg' },
         { id: 'b_sonrisa', name: '¡Una gran sonrisa feliz!', file: 'bocasonrisa.jpg' },
         { id: 'b_sonrisacerrada', name: 'Boca cerrada y feliz', file: 'bocasonrisacerrada.jpg' },
-        { id: 'b_u', name: 'Boquita de patito U', file: 'bocu.jpg' } // Adaptación al archivo bocau.jpg fijado en requerimientos
+        { id: 'b_u', name: 'Boquita de patito U', file: 'bocau.jpg' }
     ],
     lengua: [
         { id: 'l_afuera', name: 'Lengua afuera', file: 'lenguaafuera.jpg' },
@@ -24,7 +25,7 @@ const EXERCISE_DATABASE = {
         { id: 'l_inf_der', name: 'Lengua abajo a la derecha', file: 'lenguainferiorderecha.jpg' },
         { id: 'l_inf_izq', name: 'Lengua abajo a la izquierda', file: 'lenguainferiorizquierda.jpg' },
         { id: 'l_relajada', name: 'Lengua descansando relajada', file: 'lenguarelajada.jpg' },
-        { id: 'l_sup_izq', name: 'Lengua arriba a la izquierda', file: 'lenguasupeiorizquierda.jpg' }, // Respetando typo original del archivo
+        { id: 'l_sup_izq', name: 'Lengua arriba a la izquierda', file: 'lenguasupeiorizquierda.jpg' },
         { id: 'l_sup_der', name: 'Lengua arriba a la derecha', file: 'lenguasuperiorderecha.jpg' },
         { id: 'l_10', name: 'Movemos la lenguita libre', file: 'lengua_10.jpg' },
         { id: 'm_der', name: 'Inflamos la mejilla derecha', file: 'mejilladerecha.jpg' },
@@ -32,10 +33,9 @@ const EXERCISE_DATABASE = {
     ]
 };
 
-// Frases motivacionales amigables sin connotación competitiva
 const FEEDBACK_PHRASES = [
     "¡Lo estás haciendo increíble!",
-    "¡Mírrate en el espejo si puedes!",
+    "¡Mírate en el espejo si puedes!",
     "¡Muy buen movimiento!",
     "¡Tu boquita trabaja fantástico!",
     "¡Qué gran esfuerzo haces!",
@@ -43,13 +43,22 @@ const FEEDBACK_PHRASES = [
     "¡Qué divertido es practicar!"
 ];
 
+// Mapeo estricto de pistas musicales en loop por modo de juego
+const MUSIC_LOOPS = {
+    lengua: 'loop1.mp3',
+    boca: 'loop2.mp3',
+    aleatorio: 'loop3.mp3',
+    completa: 'loop4.mp3'
+};
+
 // 2. ESTADO DEL JUEGO
 let currentSessionExercises = [];
 let currentIndex = 0;
 let isPaused = false;
-let timerDuration = 7; // Segundos recomendados por ejercicio pedagógico
+let timerDuration = 7; 
 let timerInterval = null;
 let currentProgressTime = 0;
+let bgMusic = null; // Instancia global del elemento de Audio HTML5
 
 // 3. SELECCIÓN DE ELEMENTOS DOM
 const screens = {
@@ -77,71 +86,138 @@ const elements = {
     confettiCanvas: document.getElementById('confetti-canvas')
 };
 
-// 4. CONTROLADOR DE AUDIO SINTÉTICO (Estructura nativa para feedback sonoro sin archivos)
-const audioPlayer = {
+// 4. MOTOR DE AUDIO HÍBRIDO (Música externa + Efectos sintetizados nativos)
+const audioEngine = {
     ctx: null,
-    init() {
+    
+    initCtx() {
         if (!this.ctx) {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
         }
     },
-    playTone(freq, type, duration) {
+
+    // Generador de ondas sonoras personalizadas (Evita requerir múltiples archivos wav/mp3 de efectos)
+    playTone(freq, type, duration, startVol = 0.15) {
         try {
-            this.init();
+            this.initCtx();
             let osc = this.ctx.createOscillator();
             let gain = this.ctx.createGain();
             osc.type = type;
             osc.frequency.value = freq;
-            gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+            gain.gain.setValueAtTime(startVol, this.ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
             osc.connect(gain);
             gain.connect(this.ctx.destination);
             osc.start();
             osc.stop(this.ctx.currentTime + duration);
-        } catch(e) { console.log('Audio no soportado o bloqueado'); }
+        } catch(e) { console.log('Interacción de audio restringida temporalmente'); }
     },
-    playSuccess() {
-        this.playTone(523.25, 'sine', 0.15); // Nota C5
-        setTimeout(() => this.playTone(659.25, 'sine', 0.2), 120); // Nota E5
+
+    // FX Lúdicos infantiles
+    playPop() {
+        // Sonido tipo "burbuja" alegre para transiciones y clicks comunes
+        this.playTone(400, 'sine', 0.08, 0.3);
+        setTimeout(() => this.playTone(600, 'sine', 0.08, 0.2), 40);
     },
+
     playTick() {
-        this.playTone(800, 'triangle', 0.02);
+        // Sonido de aviso sutil para indicar avance automático
+        this.playTone(880, 'triangle', 0.05, 0.1);
+    },
+
+    playFanfare() {
+        // Acorde triunfal para la pantalla de felicitaciones de los niños
+        const now = this.ctx ? this.ctx.currentTime : 0;
+        this.playTone(523.25, 'sine', 0.3, 0.2); // C5
+        setTimeout(() => this.playTone(659.25, 'sine', 0.3, 0.2), 100); // E5
+        setTimeout(() => this.playTone(783.99, 'sine', 0.4, 0.2), 200); // G5
+        setTimeout(() => this.playTone(1046.50, 'sine', 0.6, 0.3), 300); // C6
+    },
+
+    // Control de la música de fondo en loop (.mp3 proporcionados por ti)
+    startMusic(mode) {
+        this.stopMusic();
+        
+        bgMusic = new Audio(MUSIC_LOOPS[mode]);
+        bgMusic.loop = true;
+        bgMusic.volume = 0.35; // Volumen balanceado para no opacar las indicaciones del docente o padres
+        
+        bgMusic.play().catch(err => {
+            console.log("La reproducción automática esperará a una interacción del usuario.");
+        });
+    },
+
+    stopMusic() {
+        if (bgMusic) {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            bgMusic = null;
+        }
+    },
+
+    pauseMusic() {
+        if (bgMusic && !bgMusic.paused) {
+            bgMusic.pause();
+        }
+    },
+
+    resumeMusic() {
+        if (bgMusic && bgMusic.paused && !isPaused) {
+            bgMusic.play().catch(() => {});
+        }
     }
 };
 
-// 5. NAVEGACIÓN ENTRE PANTALLAS (SPA Manager)
+// 5. ALGORITMO DE MEZCLA (Fisher-Yates)
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        let temp = shuffled[i];
+        shuffled[i] = shuffled[j];
+        shuffled[j] = temp;
+    }
+    return shuffled;
+}
+
+// 6. CONTROLADORES DE FLUJO Y PANTALLAS
 function showScreen(screenKey) {
     clearInterval(timerInterval);
     Object.values(screens).forEach(screen => screen.classList.remove('active'));
     screens[screenKey].classList.add('active');
     
     if (screenKey === 'congrats') {
+        audioEngine.stopMusic();
         startConfetti();
-        audioPlayer.playSuccess();
-    } else {
+        audioEngine.playFanfare();
+    } else if (screenKey === 'menu' || screenKey === 'splash') {
+        audioEngine.stopMusic();
         stopConfetti();
     }
 }
 
-// 6. CONTROLADOR DE SESIONES DE EJERCICIOS
 function setupSession(mode) {
     currentSessionExercises = [];
     
     if (mode === 'boca') {
-        currentSessionExercises = [...EXERCISE_DATABASE.boca];
+        currentSessionExercises = shuffleArray(EXERCISE_DATABASE.boca);
     } else if (mode === 'lengua') {
-        currentSessionExercises = [...EXERCISE_DATABASE.lengua];
+        currentSessionExercises = shuffleArray(EXERCISE_DATABASE.lengua);
     } else if (mode === 'aleatorio') {
-        // Combina y desordena aleatoriamente
         const combined = [...EXERCISE_DATABASE.boca, ...EXERCISE_DATABASE.lengua];
-        currentSessionExercises = combined.sort(() => Math.random() - 0.5).slice(0, 10); // Límite de 10 para no agotar al niño
+        currentSessionExercises = shuffleArray(combined).slice(0, 8);
     } else if (mode === 'completa') {
-        currentSessionExercises = [...EXERCISE_DATABASE.lengua, ...EXERCISE_DATABASE.boca];
+        const combinedAll = [...EXERCISE_DATABASE.lengua, ...EXERCISE_DATABASE.boca];
+        currentSessionExercises = shuffleArray(combinedAll);
     }
 
     currentIndex = 0;
     isPaused = false;
     elements.btnPlayPause.innerText = "⏸️ Pausa";
+    
+    // Iniciar el loop musical correspondiente al juego elegido
+    audioEngine.startMusic(mode);
+    
     loadExercise();
     showScreen('exercise');
 }
@@ -150,33 +226,24 @@ function loadExercise() {
     if (currentSessionExercises.length === 0) return;
     
     const exercise = currentSessionExercises[currentIndex];
-    
-    // Determinar la carpeta raíz basándonos en el ID
     const folder = exercise.id.startsWith('b_') ? 'boca' : 'lengua';
     
-    // Inyección de contenido con rutas relativas limpias para GitHub Pages
     elements.exerciseTitle.innerText = exercise.name;
     elements.exerciseImg.src = `${folder}/${exercise.file}`;
     
-    // Manejo de error por si algún archivo falta o tiene extensión diferente
     elements.exerciseImg.onerror = () => {
-        // Fallback elegante usando otra imagen si hay fallos en producción
-        elements.exerciseImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24'><text x='50%' y='50%' font-size='12' dominant-baseline='middle' text-anchor='middle'>👅</text></svg>";
+        elements.exerciseImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24'><text x='50%' y='50%' font-size='16' dominant-baseline='middle' text-anchor='middle'>👅</text></svg>";
     };
 
-    // Actualización de UI e Indicadores Visuales
     elements.progressText.innerText = `Ejercicio ${currentIndex + 1} de ${currentSessionExercises.length}`;
     const percentage = ((currentIndex + 1) / currentSessionExercises.length) * 100;
     elements.progressBarFill.style.width = `${percentage}%`;
     
-    // Rotar burbuja de texto de aliento de manera lúdica
     elements.feedbackBubble.innerText = FEEDBACK_PHRASES[Math.floor(Math.random() * FEEDBACK_PHRASES.length)];
     
-    // Resetear y arrancar el temporizador visual
     startExerciseTimer();
 }
 
-// 7. MOTOR DEL TEMPORIZADOR VISUAL PEDAGÓGICO
 function startExerciseTimer() {
     clearInterval(timerInterval);
     currentProgressTime = 0;
@@ -202,7 +269,7 @@ function goToNextExercise() {
     if (currentIndex < currentSessionExercises.length - 1) {
         currentIndex++;
         loadExercise();
-        audioPlayer.playTick();
+        audioEngine.playTick();
     } else {
         showScreen('congrats');
     }
@@ -212,16 +279,18 @@ function goToPrevExercise() {
     if (currentIndex > 0) {
         currentIndex--;
         loadExercise();
+        audioEngine.playPop();
     }
 }
 
-// 8. EVENT LISTENERS PRINCIPALES
+// 7. ASIGNACIÓN DE EVENTOS CON CAPTURA DE AUDIO
 elements.btnStart.addEventListener('click', () => {
-    audioPlayer.playSuccess();
+    audioEngine.playPop();
     showScreen('menu');
 });
 
 elements.btnHome.addEventListener('click', () => {
+    audioEngine.playPop();
     showScreen('menu');
 });
 
@@ -234,28 +303,36 @@ elements.btnNext.addEventListener('click', () => {
 });
 
 elements.btnRepeat.addEventListener('click', () => {
+    audioEngine.playPop();
     startExerciseTimer();
 });
 
 elements.btnPlayPause.addEventListener('click', () => {
     isPaused = !isPaused;
     elements.btnPlayPause.innerText = isPaused ? "▶️ Seguir" : "⏸️ Pausa";
+    
+    if (isPaused) {
+        audioEngine.pauseMusic();
+    } else {
+        audioEngine.resumeMusic();
+    }
 });
 
 elements.btnFinish.addEventListener('click', () => {
+    audioEngine.playPop();
     showScreen('menu');
 });
 
-// Enlazar botones del menú con sus respectivas categorías
 elements.menuButtons.forEach(button => {
     button.addEventListener('click', (e) => {
+        audioEngine.playPop();
         const mode = e.currentTarget.getAttribute('data-mode');
         setupSession(mode);
     });
 });
 
 
-// 9. MOTOR DE CONFETI EN CANVAS (Efecto nativo ligero para dispositivos limitados)
+// 8. MOTOR GRÁFICO DE CONFETI NATIVO
 let confettiCtx = elements.confettiCanvas.getContext('2d');
 let confettiPieces = [];
 let confettiActive = false;
