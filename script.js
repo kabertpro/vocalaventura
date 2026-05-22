@@ -43,22 +43,30 @@ const FEEDBACK_PHRASES = [
     "¡Qué divertido es practicar!"
 ];
 
-// Mapeo estricto de pistas musicales en loop por modo de juego
-const MUSIC_LOOPS = {
-    lengua: 'loop1.mp3',
-    boca: 'loop2.mp3',
-    aleatorio: 'loop3.mp3',
-    completa: 'loop4.mp3'
-};
-
-// 2. ESTADO DEL JUEGO
+// 2. ESTADO DEL JUEGO Y PRECARGA DE INSTANCIAS DE AUDIO FIJAS
 let currentSessionExercises = [];
 let currentIndex = 0;
 let isPaused = false;
 let timerDuration = 7; 
 let timerInterval = null;
 let currentProgressTime = 0;
-let bgMusic = null; // Instancia global del elemento de Audio HTML5
+
+// Asignación estricta e independiente de cada loop en memoria
+const audioLoops = {
+    lengua: new Audio('loop1.mp3'),
+    boca: new Audio('loop2.mp3'),
+    aleatorio: new Audio('loop3.mp3'),
+    completa: new Audio('loop4.mp3')
+};
+
+// Configuración inicial de propiedades de bucle y volumen moderado
+Object.values(audioLoops).forEach(track => {
+    track.loop = true;
+    track.volume = 0.35;
+});
+
+// Puntero de control para el loop activo actual
+let currentTrack = null; 
 
 // 3. SELECCIÓN DE ELEMENTOS DOM
 const screens = {
@@ -86,7 +94,7 @@ const elements = {
     confettiCanvas: document.getElementById('confetti-canvas')
 };
 
-// 4. MOTOR DE AUDIO HÍBRIDO (Música externa + Efectos sintetizados nativos)
+// 4. MOTOR DE AUDIO HÍBRIDO (Efectos sintetizados + Control Multi-Mapeado de Loops)
 const audioEngine = {
     ctx: null,
     
@@ -96,7 +104,7 @@ const audioEngine = {
         }
     },
 
-    // Generador de ondas sonoras personalizadas (Evita requerir múltiples archivos wav/mp3 de efectos)
+    // Generador de ondas sonoras nativo para efectos cortos (evita latencia de archivos FX externos)
     playTone(freq, type, duration, startVol = 0.15) {
         try {
             this.initCtx();
@@ -110,72 +118,69 @@ const audioEngine = {
             gain.connect(this.ctx.destination);
             osc.start();
             osc.stop(this.ctx.currentTime + duration);
-        } catch(e) { console.log('Interacción de audio restringida temporalmente'); }
+        } catch(e) { console.log('Audio Context bloqueado temporalmente por el navegador.'); }
     },
 
-    // FX Lúdicos infantiles
     playPop() {
-        // Sonido tipo "burbuja" alegre para transiciones y clicks comunes
         this.playTone(400, 'sine', 0.08, 0.3);
         setTimeout(() => this.playTone(600, 'sine', 0.08, 0.2), 40);
     },
 
     playTick() {
-        // Sonido de aviso sutil para indicar avance automático
         this.playTone(880, 'triangle', 0.05, 0.1);
     },
 
     playFanfare() {
-        // Acorde triunfal para la pantalla de felicitaciones de los niños
-        const now = this.ctx ? this.ctx.currentTime : 0;
-        this.playTone(523.25, 'sine', 0.3, 0.2); // C5
-        setTimeout(() => this.playTone(659.25, 'sine', 0.3, 0.2), 100); // E5
-        setTimeout(() => this.playTone(783.99, 'sine', 0.4, 0.2), 200); // G5
-        setTimeout(() => this.playTone(1046.50, 'sine', 0.6, 0.3), 300); // C6
+        this.playTone(523.25, 'sine', 0.3, 0.2); 
+        setTimeout(() => this.playTone(659.25, 'sine', 0.3, 0.2), 100); 
+        setTimeout(() => this.playTone(783.99, 'sine', 0.4, 0.2), 200); 
+        setTimeout(() => this.playTone(1046.50, 'sine', 0.6, 0.3), 300); 
     },
 
-    // Control de la música de fondo en loop (.mp3 proporcionados por ti)
+    // SISTEMA ANTI-SOLAPAMIENTO DE AUDIO
     startMusic(mode) {
-        this.stopMusic();
+        // Pausar y rebobinar absolutamente TODOS los loops de manera preventiva
+        Object.values(audioLoops).forEach(track => {
+            track.pause();
+            track.currentTime = 0;
+        });
         
-        bgMusic = new Audio(MUSIC_LOOPS[mode]);
-        bgMusic.loop = true;
-        bgMusic.volume = 0.35; // Volumen balanceado para no opacar las indicaciones del docente o padres
+        // Asignar el canal según la configuración solicitada
+        currentTrack = audioLoops[mode];
         
-        bgMusic.play().catch(err => {
-            console.log("La reproducción automática esperará a una interacción del usuario.");
+        // Ejecutar reproducción controlando restricciones del navegador móvil
+        currentTrack.play().catch(err => {
+            console.log("Reproducción en espera del primer toque en pantalla.");
         });
     },
 
     stopMusic() {
-        if (bgMusic) {
-            bgMusic.pause();
-            bgMusic.currentTime = 0;
-            bgMusic = null;
+        if (currentTrack) {
+            currentTrack.pause();
+            currentTrack.currentTime = 0;
+            currentTrack = null;
         }
     },
 
     pauseMusic() {
-        if (bgMusic && !bgMusic.paused) {
-            bgMusic.pause();
+        if (currentTrack && !currentTrack.paused) {
+            currentTrack.pause();
         }
     },
 
     resumeMusic() {
-        if (bgMusic && bgMusic.paused && !isPaused) {
-            bgMusic.play().catch(() => {});
+        if (currentTrack && currentTrack.paused && !isPaused) {
+            currentTrack.play().catch(() => {});
         }
     }
 };
 
-// 5. ALGORITMO DE MEZCLA (Fisher-Yates)
+// 5. FUNCIÓN DE MEZCLA ALEATORIA (Algoritmo de Fisher-Yates Puro)
 function shuffleArray(array) {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        let temp = shuffled[i];
-        shuffled[i] = shuffled[j];
-        shuffled[j] = temp;
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
 }
@@ -215,7 +220,7 @@ function setupSession(mode) {
     isPaused = false;
     elements.btnPlayPause.innerText = "⏸️ Pausa";
     
-    // Iniciar el loop musical correspondiente al juego elegido
+    // Encendido limpio del canal de audio correspondiente
     audioEngine.startMusic(mode);
     
     loadExercise();
@@ -283,7 +288,7 @@ function goToPrevExercise() {
     }
 }
 
-// 7. ASIGNACIÓN DE EVENTOS CON CAPTURA DE AUDIO
+// 7. ASIGNACIÓN DE EVENTOS CON CAPTURA DE AUDIO INTERACTIVO
 elements.btnStart.addEventListener('click', () => {
     audioEngine.playPop();
     showScreen('menu');
