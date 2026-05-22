@@ -1,0 +1,396 @@
+/* VARIABLES DE DISEÑO MONTESSORI / MODERN KIDS */
+:root {
+    --color-bg: #F0F9FF;          /* Celeste pastel ultra suave */
+    --color-primary: #3B82F6;     /* Azul claro interactivo */
+    --color-secondary: #60A5FA;   /* Celeste vivo */
+    --color-yellow: #FCD34D;      /* Amarillo suave / Estrellas */
+    --color-green: #34D399;       /* Verde amigable para éxitos */
+    --color-text: #1E3A8A;        /* Azul oscuro para excelente contraste y legibilidad */
+    --color-card-bg: #FFFFFF;
+    --font-main: 'Fredoka', sans-serif;
+    --radius-rounded: 24px;
+    --shadow-soft: 0 10px 25px rgba(59, 130, 246, 0.1);
+    --shadow-btn: 0 6px 0px #2563EB;
+}
+
+/* RESET GENERAL Y BLOQUEO DE ORIENTACIÓN MÓVIL */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* SISTEMA DE PANTALLAS (SPA) */
+.screen {
+    display: none;
+    flex: 1;
+    width: 100%;
+    max-width: 500px; /* Consistencia mobile-first vertical */
+    margin: 0 auto;
+    padding: 24px;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.screen.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* COMPONENTE DE BOTONES PRINCIPALES */
+.btn-primary {
+    background-color: var(--color-yellow);
+    color: #78350F;
+    border: none;
+    padding: 18px 45px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-radius: var(--radius-rounded);
+    cursor: pointer;
+    box-shadow: 0 6px 0px #D97706, 0 10px 20px rgba(217, 119, 6, 0.2);
+    transition: all 0.1s ease;
+}
+
+.btn-primary:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0px #D97706, 0 5px 10px rgba(217, 119, 6, 0.2);
+}
+
+.btn-secondary {
+    background-color: #E0F2FE;
+    color: var(--color-primary);
+    border: 2px solid var(--color-secondary);
+    padding: 8px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 14px;
+    cursor: pointer;
+}
+
+/* 1. ESTILOS PANTALLAS: SPLASH */
+#screen-splash {
+    justify-content: center;
+    gap: 40px;
+    text-align: center;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 0px #BFDBFE;
+}
+
+.star-deco {
+    font-size: 2rem;
+    animation: spin 4s linear infinite;
+}
+
+.splash-subtitle {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #64748B;
+    max-width: 80%;
+}
+
+.animated-character {
+    font-size: 5rem;
+    animation: bounce 2s infinite ease-in-out;
+}
+
+/* 2. ESTILOS PANTALLAS: MENÚ */
+.menu-header {
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
+.menu-header h2 {
+    font-size: 1.8rem;
+    color: var(--color-text);
+}
+
+.menu-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    flex: 1;
+    justify-content: center;
+    align-content: center;
+}
+
+.btn-menu {
+    border: none;
+    border-radius: var(--radius-rounded);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-align: left;
+    box-shadow: var(--shadow-soft);
+}
+
+.btn-menu:active {
+    transform: scale(0.98);
+}
+
+.menu-icon {
+    font-size: 3rem;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 10px;
+    border-radius: 18px;
+}
+
+.menu-text {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* Paleta cromática por tarjetas */
+.card-lengua { background-color: #FFE4E6; border: 3px solid #FDA4AF; }
+.card-boca { background-color: #E0F2FE; border: 3px solid #7DD3FC; }
+.card-aleatorio { background-color: #F3E8FF; border: 3px solid #C084FC; }
+.card-rutina { background-color: #FEF3C7; border: 3px solid #FCD34D; }
+
+/* 3. ESTILOS PANTALLAS: COMPONENTE DE EJERCICIO */
+.exercise-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.progress-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+#progress-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 12px;
+    background-color: #E2E8F0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+#progress-bar-fill {
+    width: 0%;
+    height: 100%;
+    background-color: var(--color-green);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.exercise-card {
+    width: 100%;
+    background-color: var(--color-card-bg);
+    border-radius: var(--radius-rounded);
+    padding: 24px;
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    justify-content: center;
+}
+
+#exercise-title {
+    font-size: 1.8rem;
+    text-align: center;
+    color: var(--color-text);
+}
+
+/* Contenedor seguro para respetar proporciones de imagen */
+.image-frame {
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1 / 1;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: #F8FAFC;
+    border: 4px dashed #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#exercise-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Evita que la imagen cuadrada de los niños se deforme */
+    transition: transform 0.3s ease;
+}
+
+/* Temporizador lineal e intuitivo */
+.timer-container {
+    width: 100%;
+    height: 8px;
+    background-color: #F1F5F9;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.timer-bar {
+    width: 0%;
+    height: 100%;
+    background-color: var(--color-primary);
+}
+
+.feedback-message {
+    background-color: #ECFDF5;
+    color: #065F46;
+    padding: 10px 20px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+    border: 2px solid #A7F3D0;
+    min-height: 44px;
+}
+
+/* CONTROLES DE NAVEGACIÓN INFERIOR */
+.exercise-controls {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-nav {
+    background-color: #FFFFFF;
+    border: 2px solid #CBD5E1;
+    color: var(--color-text);
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-action {
+    background-color: #FFFFFF;
+    border: 2px solid var(--color-secondary);
+    color: var(--color-primary);
+    padding: 12px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 4. ESTILOS PANTALLAS: FELICITACIONES */
+#screen-congrats {
+    justify-content: center;
+    gap: 30px;
+    text-align: center;
+}
+
+.congrats-content h2 {
+    font-size: 2rem;
+    color: var(--color-green);
+}
+
+.trophy {
+    font-size: 6rem;
+    animation: wave 2s infinite ease-in-out;
+}
+
+.stars-row {
+    font-size: 2rem;
+    letter-spacing: 10px;
+    color: var(--color-yellow);
+}
+
+/* ELEMENTO DE LIENZO DE CONFETI */
+#confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* FOOTER MARCA DISCRETA */
+.app-footer {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    font-size: 0.85rem;
+    color: #94A3B8;
+    background-color: transparent;
+    margin-top: auto;
+}
+
+/* ANIMACIONES COMPLEMENTARIAS */
+.pulse {
+    animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes wave {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(10deg) scale(1.1); }
+}
