@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VocalAventura - Ejercicios Orofaciales Infantiles</title>
+    <!-- Fuentes amigables para niños -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Canvas para efectos de Confeti de celebración -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- 1. PANTALLA SPLASH -->
+    <section id="screen-splash" class="screen active">
+        <div class="splash-content">
+            <div class="logo-container">
+                <span class="star-deco">⭐</span>
+                <h1 class="logo-title">VOCALAVENTURA</h1>
+                <span class="star-deco">⭐</span>
+            </div>
+            <p class="splash-subtitle">¡Una aventura mágica para tu boquita y lengua!</p>
+            
+            <div class="splash-animation">
+                <div class="animated-character">👅✨😀</div>
+            </div>
+
+            <button id="btn-start" class="btn-primary pulse">¡COMENZAR!</button>
+        </div>
+    </section>
+
+    <!-- 2. MENÚ PRINCIPAL -->
+    <section id="screen-menu" class="screen">
+        <header class="menu-header">
+            <h2>¿Qué aventura jugaremos hoy?</h2>
+            <p>Selecciona una rutina para empezar</p>
+        </header>
+
+        <div class="menu-grid">
+            <button class="btn-menu card-lengua" data-mode="lengua">
+                <span class="menu-icon">👅</span>
+                <span class="menu-text">Ejercicios de Lengua</span>
+            </button>
+            
+            <button class="btn-menu card-boca" data-mode="boca">
+                <span class="menu-icon">😀</span>
+                <span class="menu-text">Ejercicios de Boca</span>
+            </button>
+            
+            <button class="btn-menu card-aleatorio" data-mode="aleatorio">
+                <span class="menu-icon">🎲</span>
+                <span class="menu-text">Modo Aleatorio</span>
+            </button>
+            
+            <button class="btn-menu card-rutina" data-mode="completa">
+                <span class="menu-icon">⭐</span>
+                <span class="menu-text">Rutina Completa</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- 3. MODO EJERCICIOS (ZONA DE AVENTURA) -->
+    <section id="screen-exercise" class="screen">
+        <header class="exercise-header">
+            <button id="btn-home" class="btn-secondary">🏠 Menú</button>
+            <div class="progress-container">
+                <span id="progress-text">Ejercicio 1 de 10</span>
+                <div class="progress-bar-bg">
+                    <div id="progress-bar-fill"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="exercise-card">
+            <h3 id="exercise-title">Nombre del Ejercicio</h3>
+            
+            <div class="image-frame">
+                <!-- Imagen adaptativa y grande para niños -->
+                <img id="exercise-img" src="" alt="Ilustración del ejercicio orofacial">
+            </div>
+
+            <!-- Temporizador visual infantil circular/línea -->
+            <div class="timer-container">
+                <div class="timer-bar"></div>
+            </div>
+
+            <div class="feedback-message" id="feedback-bubble">¡Lo estás haciendo genial!</div>
+        </main>
+
+        <nav class="exercise-controls">
+            <button id="btn-prev" class="btn-nav">⬅️ Atrás</button>
+            
+            <button id="btn-play-pause" class="btn-action">⏸️ Pausa</button>
+            <button id="btn-repeat" class="btn-action">🔄 Repetir</button>
+            
+            <button id="btn-next" class="btn-nav">Siguiente ➡️</button>
+        </nav>
+    </section>
+
+    <!-- 4. PANTALLA DE FELICITACIÓN -->
+    <section id="screen-congrats" class="screen">
+        <div class="congrats-content">
+            <div class="trophy">🏆</div>
+            <h2>¡LOGRO CONSEGUIDO!</h2>
+            <p>Has completado todos los ejercicios con éxito. ¡Tu boquita está feliz!</p>
+            
+            <div class="stars-row">⭐⭐⭐⭐⭐</div>
+
+            <button id="btn-finish" class="btn-primary">Volver a Jugar</button>
+        </div>
+    </section>
+
+    <!-- FOOTER INSTITUCIONAL REQUERIDO -->
+    <footer class="app-footer">
+        <p>KABERT STUDIO – LMKE</p>
+    </footer>
+
+    <!-- Web Audio Context para sintetizar efectos sin archivos externos -->
+    <script src="script.js"></script>
+</body>
+</html>
